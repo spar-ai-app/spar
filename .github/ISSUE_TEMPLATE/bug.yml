@@ -1,0 +1,14 @@
+name: Something broke
+description: Tell us what happened and we'll fix it.
+labels: [bug]
+body:
+  - type: textarea
+    attributes: { label: What did you run?, description: The exact spar command. Leave out anything private., render: shell }
+    validations: { required: true }
+  - type: textarea
+    attributes: { label: What happened?, description: Paste the output. }
+    validations: { required: true }
+  - type: input
+    attributes: { label: Versions, description: "Output of `spar --version`, `claude --version`, `codex --version` and `node --version`" }
+  - type: dropdown
+    attributes: { label: OS, options: [macOS, Windows, Linux] }

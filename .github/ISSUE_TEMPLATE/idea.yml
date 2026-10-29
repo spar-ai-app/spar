@@ -1,0 +1,7 @@
+name: Idea
+description: Something spar should do.
+labels: [idea]
+body:
+  - type: textarea
+    attributes: { label: What do you want to do?, description: Describe the job, not the feature. "I want two AIs to check my essay against the rubric" beats "add rubric mode". }
+    validations: { required: true }

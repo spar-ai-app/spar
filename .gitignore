@@ -1,0 +1,4 @@
+node_modules/
+spar-matches/
+*.log
+.DS_Store
