@@ -49,7 +49,11 @@ spar "..." > answer.md                             # only the final answer goes 
 spar --save "..."                                  # keep the whole rally as markdown
 ```
 
-You see what each one is doing as it happens ("Claude is searching the web for…", "ChatGPT is running npm test"), the way their own apps show it.
+They behave the way their own apps do:
+
+- **Each side keeps its own conversation.** Claude continues one Claude conversation and ChatGPT one ChatGPT conversation, so each remembers what it said and only gets what's new.
+- **You see what each one is doing as it happens:** "Searching the web for…", "Running npm test", "Writing · 212 words", next to a little animated mark for each side.
+- **If one asks you a question, your answer goes back to it**, not to the other side.
 
 While they play:
 
@@ -79,7 +83,7 @@ Both sides get the same short rules: be right, not agreeable. No flattery. If th
 
 ## Want more?
 
-**spar for desktop** adds projects, your imported Claude and ChatGPT history (each side gets its own), attachments and images, Gemini and OpenRouter, saved matches, and a safe code mode with one-click undo. → spar.app
+**spar for desktop** adds projects, your imported Claude and ChatGPT history (each side gets its own), attachments and images, Gemini and OpenRouter, pay-as-you-go spar credits for hundreds of other models, saved matches, and a safe code mode with one-click undo. → spar.app
 
 ## License
 
