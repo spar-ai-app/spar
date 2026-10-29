@@ -73,4 +73,33 @@ r = run(['doctor']);
 assert.equal(r.status, 0); assert.match(r.stderr, /fake-claude 1.0/);
 ok('doctor checks both players');
 
+r = run(['--auto', '--turns', '4', 'x']);
+const calls = r.log.trim().split('\n');
+assert.ok(calls[0].includes('--system-prompt') && !calls[0].includes('--resume'), 'Claude starts with its chat-app brief');
+assert.ok(calls[1].includes('model_instructions_file'), 'ChatGPT starts with its chat-app brief');
+assert.ok(calls[2].includes('"--resume","sess-claude-1"'), 'Claude continues its own conversation');
+assert.ok(calls[3].includes('"resume"') && calls[3].includes('thread-codex-2'), 'ChatGPT continues its own conversation');
+assert.ok(!r.prompt(3).includes('Task:') && r.prompt(3).includes('<their_answer>'), 'a continuing side only gets what is new');
+ok('each side keeps its own conversation and gets only what is new');
+
+const { asksUser, parse } = require('../lib/prompts');
+assert.ok(asksUser(parse('Happy to help. Which city are you in?')));
+assert.ok(!asksUser(parse('Here you go.\n<answer>x</answer>\nVERDICT: REVISE: y')));
+ok('a reply that asks you a question is recognised');
+
+// Interactive, in a real terminal: a question goes back to whoever asked it.
+const { execSync } = require('child_process');
+let hasScript = false; try { execSync('command -v script', { stdio: 'ignore', shell: '/bin/sh' }); hasScript = process.platform === 'linux'; } catch { /* none */ }
+if (hasScript) {
+  const state = fs.mkdtempSync(path.join(os.tmpdir(), 'sparcli-pty-'));
+  const envs = `PATH=${path.join(__dirname, 'fakes', 'bin')}:$PATH FAKE_STATE=${state} FAKE_ASK=claude FAKE_PASS_AT=99 NO_COLOR=1`;
+  execSync(`(sleep 2; printf 'Calgary\\r'; sleep 2; printf 'd\\r'; sleep 1) | script -qec "env ${envs} node ${BIN} 'Plan my weekend'" /dev/null > ${state}/screen.txt 2>&1`, { shell: '/bin/bash', cwd: state, timeout: 30000 });
+  const screen = fs.readFileSync(path.join(state, 'screen.txt'), 'utf8');
+  const log = fs.readFileSync(path.join(state, 'args.log'), 'utf8').trim().split('\n');
+  assert.match(screen, /asked you something/);
+  assert.ok(log[1].startsWith('claude') && log[1].includes('--resume'), 'answer went back to Claude, same conversation');
+  assert.match(fs.readFileSync(path.join(state, 'prompt-2.md'), 'utf8'), /Calgary/);
+  ok('in the terminal, your answer to a question goes back to the side that asked');
+}
+
 console.log(`\n${n} checks passed`);
