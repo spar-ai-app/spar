@@ -3,6 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const { AGENTS } = require('../lib/agents');
+const openrouter = require('../lib/openrouter');
 const { which, runCli, agentEnv } = require('../lib/run');
 const { play, report, save } = require('../lib/match');
 const ui = require('../lib/ui');
@@ -16,11 +17,15 @@ const HELP = `
     spar "your question or task"            ask anything; they rally, you steer
     spar --code "fix the failing test"      they take turns editing this repo
     cat notes.md | spar "tighten this"      pipe in material
+    spar --right openrouter:google/gemini-2.5-pro "..."   any model, your OpenRouter key
     spar doctor                             check both players are ready
 
   ${c.bold('Options')}
     -f, --file <path>          give them a file to work with (repeatable)
-    -l, --left <claude|codex>  who serves first (default: claude)
+    -l, --left <player>        who serves first (default: claude)
+    -r, --right <player>       who returns (default: the other one of claude/codex)
+                               a player is claude, codex, or openrouter:<model>
+                               (e.g. openrouter:google/gemini-2.5-pro, with OPENROUTER_API_KEY set)
         --swap                 ChatGPT serves, Claude returns
         --code                 code match in the current git repo
     -a, --auto                 no pauses: play until someone concedes
@@ -42,11 +47,12 @@ const HELP = `
     d          done: keep the current answer
 
   Uses your own Claude and ChatGPT plans through the official Claude Code and
-  Codex CLIs. Nothing goes anywhere else.
+  Codex CLIs. OpenRouter players use your own key; you pay OpenRouter directly.
+  Nothing goes anywhere else.
 `;
 
 function parseArgs(argv) {
-  const o = { files: [], left: 'claude', web: true, code: false, auto: false, turns: 0, save: false, models: {}, efforts: {}, rest: [] };
+  const o = { files: [], left: 'claude', right: null, web: true, webExplicit: false, code: false, auto: false, turns: 0, save: false, models: {}, efforts: {}, rest: [] };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     const val = () => { const v = argv[++i]; if (v === undefined) throw new Error(`${a} needs a value`); return v; };
@@ -55,12 +61,13 @@ function parseArgs(argv) {
       case '-v': case '--version': o.version = true; break;
       case '-f': case '--file': o.files.push(val()); break;
       case '-l': case '--left': o.left = val(); break;
-      case '--swap': o.left = 'codex'; break;
+      case '-r': case '--right': o.right = val(); break;
+      case '--swap': o.left = 'codex'; o.right = 'claude'; break;
       case '--code': o.code = true; break;
       case '-a': case '--auto': o.auto = true; break;
       case '-t': case '--turns': o.turns = Math.max(1, parseInt(val(), 10) || 0); break;
       case '--no-web': o.web = false; break;
-      case '--web': o.web = true; break;
+      case '--web': o.web = true; o.webExplicit = true; break;
       case '--left-model': o.models.left = val(); break;
       case '--right-model': o.models.right = val(); break;
       case '--left-effort': o.efforts.left = val(); break;
@@ -73,9 +80,17 @@ function parseArgs(argv) {
         o.rest.push(a);
     }
   }
-  if (!AGENTS[o.left]) throw new Error('--left must be claude or codex');
-  o.right = o.left === 'claude' ? 'codex' : 'claude';
+  const valid = x => AGENTS[x] || /^openrouter:\S+\/\S+$/.test(x);
+  if (!valid(o.left)) throw new Error('--left must be claude, codex or openrouter:<provider>/<model>');
+  if (!o.right) o.right = o.left === 'claude' ? 'codex' : 'claude';
+  if (!valid(o.right)) throw new Error('--right must be claude, codex or openrouter:<provider>/<model>');
   return o;
+}
+
+// "claude" / "codex" → the official CLI; "openrouter:google/gemini-2.5-pro" → that model with your key.
+function player(spec) {
+  if (AGENTS[spec]) return AGENTS[spec];
+  return openrouter.makePlayer(spec.slice('openrouter:'.length));
 }
 
 async function doctor() {
@@ -86,6 +101,7 @@ async function doctor() {
     const v = await runCli(a.bin, ['--version'], { env: agentEnv(), timeoutMs: 30000 }).catch(() => null);
     ui.say(`  ${c.green('✓')} ${a.name}: ${(v && v.stdout.trim().split('\n')[0]) || 'installed'} ${c.dim(`(sign in: ${a.login})`)}`);
   }
+  ui.say(process.env.OPENROUTER_API_KEY ? `  ${c.green('✓')} OpenRouter: key found ${c.dim('(use --right openrouter:<model>)')}` : `  ${c.dim('·')} OpenRouter: optional. ${c.dim('Set OPENROUTER_API_KEY to play any model: https://openrouter.ai/settings/keys')}`);
   ui.say();
   ui.say(ok ? '  Ready. Try: spar "what should I name my dog?"' : '  Install the missing player, sign in once, then play.');
   ui.say();
@@ -118,12 +134,23 @@ async function main() {
   if (!task && !piped && ui.TTY) task = ((await ui.ask(`  ${c.bold('What should they spar about?')} › `)) || '').trim();
   if (!task) { ui.say(HELP); return 2; }
 
-  for (const id of [o.left, o.right]) {
-    if (!which(AGENTS[id].bin)) { ui.say(c.red(`  ${AGENTS[id].name} isn't installed.`) + c.dim(` Install: ${AGENTS[id].install}, then sign in with: ${AGENTS[id].login}`)); return 1; }
+  const L = player(o.left), R = player(o.right);
+  for (const a of [L, R]) {
+    if (a.api) {
+      if (!process.env.OPENROUTER_API_KEY) { ui.say(c.red('  No OpenRouter key.') + c.dim(' Get one at https://openrouter.ai/settings/keys and set OPENROUTER_API_KEY.')); return 1; }
+      if (o.code) { ui.say(c.red(`  ${a.name} can't edit files.`) + c.dim(' Code matches need Claude Code or Codex on both sides.')); return 1; }
+      if (!(await openrouter.knownModel(a.model))) { ui.say(c.red(`  OpenRouter has no model called ${a.model}.`) + c.dim(' See https://openrouter.ai/models')); return 1; }
+    } else if (!which(a.bin)) { ui.say(c.red(`  ${a.name} isn't installed.`) + c.dim(` Install: ${a.install}, then sign in with: ${a.login}`)); return 1; }
+  }
+  if (L.name === R.name) R.name += ' 2';
+  // Before spending anyone's money: what an OpenRouter turn will roughly cost.
+  for (const a of [L, R].filter(x => x.api)) {
+    const est = await openrouter.estimateTurn(a.model);
+    if (est != null) ui.say(c.dim(`  ${a.name} via OpenRouter, your key: about $${est < 0.01 ? est.toFixed(4) : est.toFixed(2)} a turn.`));
   }
 
   const opts = {
-    task, materials, left: o.left, right: o.right, code: o.code, web: o.web, turns: o.turns,
+    task, materials, left: o.left, right: o.right, leftAgent: L, rightAgent: R, code: o.code, web: o.web, webExplicit: o.webExplicit, turns: o.turns,
     interactive: !o.auto && !piped && ui.TTY && !!process.stdin.isTTY,
     models: o.models, efforts: o.efforts, keepKeys: o.keepKeys, allowDirty: o.allowDirty,
     user: 'the user', cwd: process.cwd(),

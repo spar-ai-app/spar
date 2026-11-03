@@ -28,13 +28,14 @@ You need [Node.js](https://nodejs.org) 18+ and at least one of these, signed in 
 
 - [Claude Code](https://docs.claude.com/en/docs/claude-code/overview) (Claude Pro, Max, Team): `npm i -g @anthropic-ai/claude-code`
 - [Codex](https://github.com/openai/codex) (ChatGPT Plus, Pro, Team): `npm i -g @openai/codex`
+- Or no subscription at all: an [OpenRouter key](https://openrouter.ai/settings/keys) for any model, pay as you go
 
 ```
 npm i -g spar-ai
 spar doctor
 ```
 
-No API keys. No account with us. Your prompts go only to Anthropic and OpenAI, through their own official tools.
+No account with us. With your plans, your prompts go only to Anthropic and OpenAI, through their own official tools. With an OpenRouter key, they go to OpenRouter and you pay them directly.
 
 ## Play
 
@@ -62,6 +63,16 @@ While they play:
 | `↵` | send it to the other side |
 | any text | a note for the next turn (it beats everything else) |
 | `d` | done: keep the current answer |
+
+### Any model: Claude vs Gemini, GPT vs DeepSeek…
+
+```bash
+export OPENROUTER_API_KEY=sk-or-...                 # your own key from openrouter.ai
+spar --right openrouter:google/gemini-2.5-pro "..."  # Claude (your plan) vs Gemini (your key)
+spar --left openrouter:deepseek/deepseek-chat --right openrouter:x-ai/grok-4 "..."
+```
+
+Any model on [openrouter.ai/models](https://openrouter.ai/models) can play either side. spar shows roughly what a turn costs before it starts and what the match cost at the end. You pay OpenRouter directly; spar never touches the bill. Web search is off for OpenRouter sides unless you pass `--web`, since it costs extra there.
 
 ### Code matches
 

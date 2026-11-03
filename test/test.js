@@ -5,9 +5,9 @@ const { spawnSync } = require('child_process');
 const BIN = path.join(__dirname, '..', 'bin', 'spar.js');
 let n = 0; const ok = m => console.log(`  ✓ ${++n}. ${m}`);
 
-function run(args, { input = '', pass = 99, fail = '', cwd } = {}) {
+function run(args, { input = '', pass = 99, fail = '', cwd, env: extra = {} } = {}) {
   const state = fs.mkdtempSync(path.join(os.tmpdir(), 'sparcli-'));
-  const env = { ...process.env, PATH: path.join(__dirname, 'fakes', 'bin') + path.delimiter + process.env.PATH, FAKE_STATE: state, FAKE_PASS_AT: String(pass), FAKE_FAIL: fail, NO_COLOR: '1', ANTHROPIC_API_KEY: 'sk-should-be-removed' };
+  const env = { ...process.env, PATH: path.join(__dirname, 'fakes', 'bin') + path.delimiter + process.env.PATH, FAKE_STATE: state, FAKE_PASS_AT: String(pass), FAKE_FAIL: fail, NO_COLOR: '1', ANTHROPIC_API_KEY: 'sk-should-be-removed', ...extra };
   const r = spawnSync('node', [BIN, ...args], { input, env, cwd: cwd || state, encoding: 'utf8' });
   const log = fs.existsSync(path.join(state, 'args.log')) ? fs.readFileSync(path.join(state, 'args.log'), 'utf8') : '';
   const prompt = i => fs.readFileSync(path.join(state, `prompt-${i}.md`), 'utf8');
@@ -102,4 +102,37 @@ if (hasScript) {
   ok('in the terminal, your answer to a question goes back to the side that asked');
 }
 
-console.log(`\n${n} checks passed`);
+// OpenRouter: any model with your own key
+{
+  const { spawn } = require('child_process');
+  const orState = fs.mkdtempSync(path.join(os.tmpdir(), 'sparcli-or-'));
+  const srv = spawn('node', [path.join(__dirname, 'fakes', 'openrouter-server.js'), orState]);
+  const waitPort = () => new Promise(res => srv.stdout.once('data', d => res(String(d).trim())));
+  (async () => {
+    const p = await waitPort();
+    const env = { OPENROUTER_API_KEY: 'sk-or-test', OPENROUTER_BASE_URL: `http://127.0.0.1:${p}/api/v1` };
+    let r = run(['--auto', '--right', 'openrouter:google/gemini-test', 'Plan a team offsite'], { pass: 2, env });
+    assert.equal(r.status, 0, r.stderr);
+    assert.match(r.stderr, /Gemini Test via OpenRouter, your key: about \$0\.02 a turn/);
+    assert.match(r.stderr, /Claude 0 · 2 Gemini Test/);
+    assert.match(r.stderr, /OpenRouter cost this match: \$0\.01/);
+    assert.equal(r.stdout.trim(), 'Version from Gemini 1');
+    ok('an OpenRouter model plays with your key: price shown first, cost at the end');
+
+    r = run(['--auto', '--turns', '4', '--right', 'openrouter:google/gemini-test', 'x'], { env });
+    const reqs = fs.readFileSync(path.join(orState, 'or-requests.log'), 'utf8').trim().split('\n').map(JSON.parse).slice(-2);
+    assert.equal(reqs[0].messages, 2); assert.equal(reqs[1].messages, 4);
+    assert.equal(reqs[0].plugins, null);
+    ok('the OpenRouter side keeps its own conversation, and web search costs nothing unless you ask');
+
+    r = run(['--auto', '--right', 'openrouter:google/nope', 'x'], { env });
+    assert.equal(r.status, 1); assert.match(r.stderr, /no model called google\/nope/);
+    r = run(['--auto', '--right', 'openrouter:google/gemini-test', 'x'], { env: { OPENROUTER_API_KEY: '' } });
+    assert.equal(r.status, 1); assert.match(r.stderr, /No OpenRouter key/);
+    r = run(['--code', '--auto', '--right', 'openrouter:google/gemini-test', 'x'], { env });
+    assert.equal(r.status, 1); assert.match(r.stderr, /can't edit files/);
+    ok('clear messages for a missing key, an unknown model, and code matches');
+    srv.kill();
+    console.log(`\n${n} checks passed`);
+  })().catch(e => { srv.kill(); console.error(e); process.exit(1); });
+}

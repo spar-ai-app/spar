@@ -5,5 +5,6 @@
 - Live activity, like the apps: what each side is doing right now, a live word count while it writes, and an animated mark for each side.
 - Each side keeps its own conversation (Claude Code and Codex sessions are resumed), and gets its chat-app brief outside code matches.
 - When a side asks you a question, your answer goes back to that side.
+- Any model on OpenRouter can play either side with your own key (`--right openrouter:google/gemini-2.5-pro`), with a cost estimate before and the actual cost after.
 - `--code` matches in your git repo, one commit per turn.
 - Pick models and effort per side; pipe in material; save match reports.
