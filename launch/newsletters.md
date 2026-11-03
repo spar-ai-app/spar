@@ -12,7 +12,7 @@ spar is a free, open-source CLI that makes Claude and ChatGPT review each other'
 
 What's interesting: the two models catch different mistakes, and a short set of "house rules" (be right, not agreeable; PASS instead of busywork) stops them from just agreeing politely. There's also a code mode where Claude Code and Codex take turns in a git repo.
 
-Repo and 20-second demo: https://github.com/[ORG]/spar
+Repo and 20-second demo: https://github.com/spar-ai-app/spar
 
 Thanks,
 [your name]

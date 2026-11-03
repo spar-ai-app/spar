@@ -29,4 +29,4 @@ No API keys. It runs the official Claude Code and Codex CLIs with your own sign-
 
 npx spar-ai "your question"
 
-github.com/[ORG]/spar
+github.com/spar-ai-app/spar

@@ -8,5 +8,5 @@
   "engines": { "node": ">=18" },
   "keywords": ["claude", "chatgpt", "codex", "claude-code", "llm", "debate", "review", "cli", "pong"],
   "license": "Apache-2.0",
-  "repository": { "type": "git", "url": "https://github.com/[ORG]/spar" }
+  "repository": { "type": "git", "url": "https://github.com/spar-ai-app/spar" }
 }

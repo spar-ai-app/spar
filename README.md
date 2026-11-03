@@ -5,7 +5,7 @@
 <p align="center">
   <a href="https://www.npmjs.com/package/spar-ai"><img alt="npm" src="https://img.shields.io/npm/v/spar-ai?color=5fd3a3&label=npm"></a>
   <a href="LICENSE"><img alt="Apache 2.0" src="https://img.shields.io/badge/license-Apache%202.0-7cb6f0"></a>
-  <a href="https://github.com/[ORG]/spar/actions"><img alt="CI" src="https://github.com/[ORG]/spar/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="https://github.com/spar-ai-app/spar/actions"><img alt="CI" src="https://github.com/spar-ai-app/spar/actions/workflows/ci.yml/badge.svg"></a>
 </p>
 
 <p align="center"><img src="assets/demo.svg" alt="Claude serves an answer, ChatGPT finds two problems, Claude can't find a hole: match report" width="860"></p>

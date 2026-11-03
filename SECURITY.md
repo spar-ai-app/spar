@@ -4,4 +4,4 @@ spar runs Claude Code and Codex on your computer with your own sign-in. It never
 
 In `--code` mode the agents can edit files in the current git repository and run test commands. Every turn is a commit on a separate `spar/…` branch.
 
-Found a vulnerability? Email [SECURITY EMAIL] rather than opening a public issue. We'll reply within 3 business days.
+Found a vulnerability? Email sumer@mercedesandsingh.com rather than opening a public issue. We'll reply within 3 business days.

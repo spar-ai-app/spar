@@ -4,7 +4,7 @@
 
 Show HN: Spar – make Claude and ChatGPT argue until the answer is right
 
-**URL:** https://github.com/[ORG]/spar
+**URL:** https://github.com/spar-ai-app/spar
 
 **First comment** (post it right after submitting):
 

@@ -4,7 +4,7 @@ Thanks for helping. spar is small on purpose: one dependency-free Node package t
 
 **Run it from source**
 ```
-git clone https://github.com/[ORG]/spar && cd spar
+git clone https://github.com/spar-ai-app/spar && cd spar
 npm test                 # uses stand-in CLIs, no accounts needed
 node bin/spar.js doctor  # checks your real Claude Code / Codex
 ```

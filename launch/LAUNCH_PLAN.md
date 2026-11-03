@@ -5,7 +5,8 @@ The goal for week one: get people to try one match and share the match report. S
 ## Before launch day
 
 - [ ] Pick the final name, then reserve the npm package, GitHub org, domain and X handle together.
-- [ ] Replace `[ORG]`, `[COPYRIGHT HOLDER]`, `[SECURITY EMAIL]`, `[CONDUCT EMAIL]` across the repo.
+- [x] Fill in the owner (1703536 Alberta Ltd. (MASIV)) and contact email.
+- [x] GitHub org: spar-ai-app (github.com/spar-ai-app/spar).
 - [ ] Play 20 real matches and keep the three best match reports. You need real ones where one AI catches the other's mistake.
 - [ ] Record a real 20-second terminal demo (`vhs` or asciinema) and put it next to `assets/demo.svg`.
 - [ ] Turn on GitHub Discussions; pin a "Show us your best match" thread.

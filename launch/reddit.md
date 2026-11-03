@@ -12,7 +12,7 @@ It runs Claude Code (signed in with your own plan) against Codex. Claude serves,
 
 `npx spar-ai "your question"`
 
-Repo: https://github.com/[ORG]/spar. I'd love to see your best match reports (`--save`).
+Repo: https://github.com/spar-ai-app/spar. I'd love to see your best match reports (`--save`).
 
 ## r/ChatGPT
 
