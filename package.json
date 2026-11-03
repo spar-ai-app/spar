@@ -1,6 +1,6 @@
 {
   "name": "spar-ai",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Make Claude and ChatGPT argue until the answer is right. Uses the plans you already pay for.",
   "bin": { "spar": "bin/spar.js" },
   "files": ["bin", "lib", "LICENSE", "NOTICE", "README.md"],

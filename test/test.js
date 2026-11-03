@@ -87,6 +87,19 @@ assert.ok(asksUser(parse('Happy to help. Which city are you in?')));
 assert.ok(!asksUser(parse('Here you go.\n<answer>x</answer>\nVERDICT: REVISE: y')));
 ok('a reply that asks you a question is recognised');
 
+// Signed out: doctor says so, and a match won't start halfway and fail.
+r = run(['doctor'], { env: { FAKE_SIGNED_OUT: 'codex' } });
+assert.equal(r.status, 1); assert.match(r.stderr, /ChatGPT: .*not signed in\. Run: codex login/); assert.match(r.stderr, /Claude: .*signed in/);
+r = run(['--auto', 'x'], { env: { FAKE_SIGNED_OUT: 'claude' } });
+assert.equal(r.status, 1); assert.match(r.stderr, /Claude isn't signed in\. Run: claude/);
+assert.equal(r.log, '', 'no turn was played');
+ok('a signed-out player is caught by doctor and before the match starts');
+
+// No network: Codex keeps reconnecting; spar shows it and gives up with a clear message instead of hanging.
+r = run(['--auto', '--swap', 'x'], { env: { FAKE_NET_DOWN: 'codex', SPAR_STALL_MS: '1500' } });
+assert.equal(r.status, 1); assert.match(r.stderr, /couldn't reach OpenAI/);
+ok('a lost connection is shown and ends with a clear message, not a frozen screen');
+
 // Interactive, in a real terminal: a question goes back to whoever asked it.
 const { execSync } = require('child_process');
 let hasScript = false; try { execSync('command -v script', { stdio: 'ignore', shell: '/bin/sh' }); hasScript = process.platform === 'linux'; } catch { /* none */ }

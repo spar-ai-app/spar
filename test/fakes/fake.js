@@ -4,7 +4,16 @@
 const fs = require('fs'), path = require('path');
 const who = process.argv[2], args = process.argv.slice(3);
 const state = process.env.FAKE_STATE;
+// Sign-in checks: answered before anything is logged, like the real CLIs do.
+const out_ = process.env.FAKE_SIGNED_OUT === who;
+if (who === 'claude' && args[0] === 'auth' && args[1] === 'status') { console.log(JSON.stringify({ loggedIn: !out_ })); process.exit(out_ ? 1 : 0); }
+if (who === 'codex' && args[0] === 'login' && args[1] === 'status') { console.log(out_ ? 'Not logged in' : 'Logged in using ChatGPT'); process.exit(out_ ? 1 : 0); }
 fs.appendFileSync(path.join(state, 'args.log'), `${who} ${JSON.stringify(args)}\n`);
+if (process.env.FAKE_NET_DOWN === who && args.includes('--json')) {
+  process.stdout.write(JSON.stringify({ type: 'thread.started', thread_id: 't-down' }) + '\n');
+  setInterval(() => process.stdout.write(JSON.stringify({ type: 'error', message: 'Reconnecting... waiting for network (Connection failed: error sending request)' }) + '\n'), 100);
+  return;
+}
 if (args.includes('--version')) { console.log(`fake-${who} 1.0`); process.exit(0); }
 let prompt = '';
 process.stdin.setEncoding('utf8');

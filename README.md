@@ -8,11 +8,13 @@
   <a href="https://github.com/spar-ai-app/spar/actions"><img alt="CI" src="https://github.com/spar-ai-app/spar/actions/workflows/ci.yml/badge.svg"></a>
 </p>
 
-<p align="center"><img src="assets/demo.svg" alt="Claude serves an answer, ChatGPT finds two problems, Claude can't find a hole: match report" width="860"></p>
+<p align="center"><img src="assets/spar-pong.gif" alt="Two pixel robots, Claude and ChatGPT, play pong while arguing about leasing a car; ChatGPT wins 2-0 and the final answer is: buy it" width="420"></p>
 
 ```bash
 npx spar-ai "should I lease or buy my next car?"
 ```
+
+New here? Run `npx spar-ai doctor` first: it checks that Claude Code and Codex are installed and signed in.
 
 ## Why
 
@@ -49,6 +51,8 @@ spar --left-model opus --right-effort high "..."   # pick models and effort
 spar "..." > answer.md                             # only the final answer goes to stdout
 spar --save "..."                                  # keep the whole rally as markdown
 ```
+
+<p align="center"><img src="assets/demo.svg" alt="Claude serves an answer, ChatGPT finds two problems, Claude can't find a hole: match report" width="860"></p>
 
 They behave the way their own apps do:
 
@@ -92,9 +96,29 @@ They take turns in your repo: one edits, the other reads the diff, runs the test
 
 Both sides get the same short rules: be right, not agreeable. No flattery. If the other answer is good, say PASS instead of changing things to look busy. Mark anything uncertain `[CHECK]` and never invent sources. (Read them in [`lib/prompts.js`](lib/prompts.js).)
 
+## FAQ
+
+**Is this allowed on my Claude and ChatGPT plans?**
+spar doesn't touch your login. It runs the official Claude Code and Codex command-line tools on your computer in their documented non-interactive modes (`claude -p` and `codex exec`), exactly as you could from a script, and they count against your plan's usage like any other session. It never reads, copies or sends your tokens anywhere. Each provider's terms are theirs to set and can change, so check your plan's terms if you're unsure. If you'd rather use API keys, pass `--use-api-keys`, or use an OpenRouter key.
+
+**Why two models instead of one good one?**
+A model reviewing its own answer tends to agree with itself. A different model, from a different company, trained differently, misses different things, and in spar it has to say exactly what's wrong before it can change anything. It's not magic: sometimes the first answer is already right, and then the other side says so and the match ends in one turn.
+
+**Won't they just agree with each other to be polite?**
+Both get the same short house rules: be right, not agreeable; no flattery; say `PASS` rather than make busywork changes; mark anything uncertain `[CHECK]`; never invent sources.
+
+**What does it cost?**
+Nothing extra with your Claude and ChatGPT plans: each turn is one normal Claude Code or Codex request. A match is usually 2 to 6 turns. With OpenRouter, spar shows roughly what a turn costs before it starts.
+
+**How is it different from other "make the models debate" tools?**
+It's a single `npx` command, it runs on the subscriptions you already have (no API keys needed), each side keeps its own real conversation, it works for everyday questions as well as code, and in code mode every turn is a git commit on its own branch. Apache 2.0.
+
+**Something's not working.**
+Run `npx spar-ai doctor`. Most problems are a tool that isn't installed or isn't signed in, and doctor says which. Otherwise, [open an issue](https://github.com/spar-ai-app/spar/issues).
+
 ## Want more?
 
-**spar for desktop** adds projects, your imported Claude and ChatGPT history (each side gets its own), attachments and images, Gemini and OpenRouter, pay-as-you-go spar credits for hundreds of other models, saved matches, and a safe code mode with one-click undo. → spar.app
+**spar for desktop** adds projects, your imported Claude and ChatGPT history (each side gets its own), attachments and images, Gemini and OpenRouter, pay-as-you-go spar credits for hundreds of other models, saved matches, and a safe code mode with one-click undo. → [Join the desktop beta](https://spar-ai-app.github.io/spar/)
 
 ## License
 

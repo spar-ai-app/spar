@@ -89,21 +89,26 @@ function parseArgs(argv) {
 
 // "claude" / "codex" → the official CLI; "openrouter:google/gemini-2.5-pro" → that model with your key.
 function player(spec) {
-  if (AGENTS[spec]) return AGENTS[spec];
+  if (AGENTS[spec]) return { ...AGENTS[spec] };   // a copy, so a Claude-vs-Claude match can name its sides apart
   return openrouter.makePlayer(spec.slice('openrouter:'.length));
 }
+
+// How you ran spar, so hints show a command that works for you.
+const SPAR = /[\\/]_npx[\\/]/.test(__dirname) ? 'npx spar-ai' : 'spar';
 
 async function doctor() {
   ui.say();
   let ok = true;
   for (const a of Object.values(AGENTS)) {
-    if (!which(a.bin)) { ok = false; ui.say(`  ${c.red('✗')} ${a.name}: not installed. ${c.dim(`Install: ${a.install}`)}`); continue; }
-    const v = await runCli(a.bin, ['--version'], { env: agentEnv(), timeoutMs: 30000 }).catch(() => null);
-    ui.say(`  ${c.green('✓')} ${a.name}: ${(v && v.stdout.trim().split('\n')[0]) || 'installed'} ${c.dim(`(sign in: ${a.login})`)}`);
+    if (!which(a.bin)) { ok = false; ui.say(`  ${c.red('✗')} ${a.name}: not installed. ${c.dim(`Install: ${a.install}, then sign in: ${a.login}`)}`); continue; }
+    const [v, signed] = await Promise.all([runCli(a.bin, ['--version'], { env: agentEnv(), timeoutMs: 30000 }).catch(() => null), a.signedIn()]);
+    const ver = (v && v.stdout.trim().split('\n')[0]) || 'installed';
+    if (signed === false) { ok = false; ui.say(`  ${c.red('✗')} ${a.name}: ${ver}, but not signed in. ${c.dim(`Run: ${a.login}`)}`); }
+    else ui.say(`  ${c.green('✓')} ${a.name}: ${ver}${signed ? c.dim(' · signed in') : c.dim(` (sign in: ${a.login})`)}`);
   }
   ui.say(process.env.OPENROUTER_API_KEY ? `  ${c.green('✓')} OpenRouter: key found ${c.dim('(use --right openrouter:<model>)')}` : `  ${c.dim('·')} OpenRouter: optional. ${c.dim('Set OPENROUTER_API_KEY to play any model: https://openrouter.ai/settings/keys')}`);
   ui.say();
-  ui.say(ok ? '  Ready. Try: spar "what should I name my dog?"' : '  Install the missing player, sign in once, then play.');
+  ui.say(ok ? `  Ready. Try: ${SPAR} "what should I name my dog?"` : '  Fix the line marked ✗, then play.');
   ui.say();
   return ok ? 0 : 1;
 }
@@ -142,6 +147,13 @@ async function main() {
       if (!(await openrouter.knownModel(a.model))) { ui.say(c.red(`  OpenRouter has no model called ${a.model}.`) + c.dim(' See https://openrouter.ai/models')); return 1; }
     } else if (!which(a.bin)) { ui.say(c.red(`  ${a.name} isn't installed.`) + c.dim(` Install: ${a.install}, then sign in with: ${a.login}`)); return 1; }
   }
+  // Signed out is the most common first-run problem: catch it before the match, not halfway through.
+  if (!o.keepKeys) {
+    const cli = [L, R].filter((a, i, all) => !a.api && all.findIndex(b => b.id === a.id) === i);
+    const signed = await Promise.all(cli.map(a => a.signedIn()));
+    const out = cli.filter((a, i) => signed[i] === false);
+    if (out.length) { for (const a of out) ui.say(c.red(`  ${a.name} isn't signed in.`) + c.dim(` Run: ${a.login}  (uses your ${a.id === 'claude' ? 'Claude' : 'ChatGPT'} plan)`)); return 1; }
+  }
   if (L.name === R.name) R.name += ' 2';
   // Before spending anyone's money: what an OpenRouter turn will roughly cost.
   for (const a of [L, R].filter(x => x.api)) {
@@ -165,7 +177,7 @@ async function main() {
     if (process.stdout.isTTY) ui.say(`  ${c.bold('FINAL ANSWER')}\n`);
     process.stdout.write(res.answer.trim() + '\n');
   }
-  if (ui.TTY) ui.say(c.dim('\n  Want projects, your chat history and a proper app? spar.app'));
+  if (ui.TTY) ui.say(c.dim('\n  Want projects, your chat history and a proper app? https://spar-ai-app.github.io/spar/'));
   return 0;
 }
 
