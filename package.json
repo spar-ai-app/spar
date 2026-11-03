@@ -2,11 +2,36 @@
   "name": "spar-ai",
   "version": "0.1.1",
   "description": "Make Claude and ChatGPT argue until the answer is right. Uses the plans you already pay for.",
-  "bin": { "spar": "bin/spar.js" },
-  "files": ["bin", "lib", "LICENSE", "NOTICE", "README.md"],
-  "scripts": { "test": "node test/test.js" },
-  "engines": { "node": ">=18" },
-  "keywords": ["claude", "chatgpt", "codex", "claude-code", "llm", "debate", "review", "cli", "pong"],
+  "bin": {
+    "spar": "bin/spar.js"
+  },
+  "files": [
+    "bin",
+    "lib",
+    "LICENSE",
+    "NOTICE",
+    "README.md"
+  ],
+  "scripts": {
+    "test": "node test/test.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "claude",
+    "chatgpt",
+    "codex",
+    "claude-code",
+    "llm",
+    "debate",
+    "review",
+    "cli",
+    "pong"
+  ],
   "license": "Apache-2.0",
-  "repository": { "type": "git", "url": "https://github.com/spar-ai-app/spar" }
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/spar-ai-app/spar.git"
+  }
 }
