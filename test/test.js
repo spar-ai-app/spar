@@ -26,7 +26,8 @@ ok('auto match: serve, return, concede; live steps shown; final answer on stdout
 
 r = run(['--auto', '--turns', '3', 'x']);
 assert.equal(r.stdout.trim(), 'Version 3 by claude');
-assert.match(r.stderr, /You called it/);
+assert.match(r.stderr, /Turn limit reached/);
+assert.doesNotMatch(r.stderr, /You called it/);
 ok('turn limit stops the match and keeps the latest version');
 
 r = run(['--auto', '--swap', '--left-model', 'gpt-x', '--left-effort', 'high', '--right-model', 'sonnet', '--right-effort', 'max', '--no-web', 'x'], { pass: 2 });
@@ -45,6 +46,7 @@ ok('piped input and --file reach both players');
 r = run(['--auto', 'x'], { fail: 'codex' });
 assert.match(r.stderr, /usage limit/);
 assert.equal(r.stdout.trim(), 'Version 1 by claude');
+assert.match(r.stderr, /Stopped early/);
 ok('a failing side is explained, and the best answer so far is kept');
 
 const repo = fs.mkdtempSync(path.join(os.tmpdir(), 'sparrepo-'));
@@ -62,7 +64,18 @@ ok('code match: own branch, one commit per turn, reviewer gets the diff');
 fs.writeFileSync(path.join(repo, 'dirty.txt'), 'x');
 r = run(['--code', '--auto', 'x'], { cwd: repo });
 assert.equal(r.status, 1); assert.match(r.stderr, /uncommitted changes/);
+assert.match(r.stderr, /\n  \(Or pass --allow-dirty/, 'second line of the message is indented');
+assert.doesNotMatch(r.stderr, /SPAR/, 'no banner for a match that never starts');
 ok('code match refuses to start on uncommitted changes');
+
+r = run(['--turns', 'abc', 'x']);
+assert.equal(r.status, 2); assert.match(r.stderr, /--turns needs a whole number/);
+r = run(['--turns', '0', 'x']);
+assert.equal(r.status, 2); assert.match(r.stderr, /--turns needs a whole number/);
+r = run(['--bogus', 'x']);
+assert.equal(r.status, 2); assert.match(r.stderr, /Unknown option --bogus\. See spar --help/);
+assert.equal(r.log, '', 'no player runs after a bad option');
+ok('a bad option or turn count stops with a short message and exit code 2');
 
 r = run(['--auto', '--save', 'Best pizza?'], { pass: 2 });
 const saved = fs.readdirSync(path.join(r.state, 'spar-matches'));

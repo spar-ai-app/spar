@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- The match report says "Turn limit reached" when `--turns` (or the `--auto` default of 6) ends the match, and "Stopped early" when a side fails, instead of "You called it".
+- A code match that can't start (no git repo, uncommitted changes) shows only the reason, with no banner, and multi-line messages stay indented.
+- `--turns` must be a whole number of 1 or more; `--turns abc` used to quietly mean 1.
+- "Unknown option" points to `npx spar-ai --help` when that's how you ran it.
+
 ## 0.1.1 (2026-11-03)
 
 - `doctor` now checks that Claude Code and Codex are signed in, not just installed, and a match won't start if a side is signed out.
