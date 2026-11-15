@@ -1,11 +1,12 @@
 # Changelog
 
-## Unreleased
+## 0.1.2 (2026-11-14)
 
 - The match report says "Turn limit reached" when `--turns` (or the `--auto` default of 6) ends the match, and "Stopped early" when a side fails, instead of "You called it".
 - A code match that can't start (no git repo, uncommitted changes) shows only the reason, with no banner, and multi-line messages stay indented.
 - `--turns` must be a whole number of 1 or more; `--turns abc` used to quietly mean 1.
 - "Unknown option" points to `npx spar-ai --help` when that's how you ran it.
+- Landing page: minimal redesign for any AI, self-hosted font; privacy policy now covers OpenRouter.
 
 ## 0.1.1 (2026-11-03)
 
