@@ -7,6 +7,7 @@
 - `--turns` must be a whole number of 1 or more; `--turns abc` used to quietly mean 1.
 - "Unknown option" points to `npx spar-ai --help` when that's how you ran it.
 - Landing page: minimal redesign for any AI, self-hosted font; privacy policy now covers OpenRouter.
+- An expired Claude or Codex sign-in names the exact command to fix it (`claude auth login` or `codex login`).
 
 ## 0.1.1 (2026-11-03)
 

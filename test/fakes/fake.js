@@ -22,6 +22,7 @@ process.stdin.on('end', () => {
   const cf = path.join(state, 'count'); const n = (fs.existsSync(cf) ? +fs.readFileSync(cf, 'utf8') : 0) + 1; fs.writeFileSync(cf, String(n));
   fs.writeFileSync(path.join(state, `prompt-${n}.md`), prompt);
   if (process.env.FAKE_FAIL === who) { console.error('Error: You have hit your usage limit.'); process.exit(1); }
+  if (process.env.FAKE_AUTHFAIL === who) { console.error('Failed to authenticate: OAuth session expired and could not be refreshed'); process.exit(1); }
   const pass = n >= +(process.env.FAKE_PASS_AT || 99);
   const code = /coding task/.test(prompt);
   let out;

@@ -49,6 +49,10 @@ assert.equal(r.stdout.trim(), 'Version 1 by claude');
 assert.match(r.stderr, /Stopped early/);
 ok('a failing side is explained, and the best answer so far is kept');
 
+r = run(['--auto', '--swap', 'x'], { env: { FAKE_AUTHFAIL: 'claude' } });
+assert.match(r.stderr, /Claude's sign-in on this computer has expired or is missing\. Run: claude auth login/);
+ok('an expired sign-in names the exact command to fix it');
+
 const repo = fs.mkdtempSync(path.join(os.tmpdir(), 'sparrepo-'));
 const g = a => spawnSync('git', a, { cwd: repo, encoding: 'utf8' });
 g(['init', '-q']); fs.writeFileSync(path.join(repo, 'app.js'), '1\n'); g(['add', '-A']); g(['-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '-qm', 'start']);
