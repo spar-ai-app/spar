@@ -65,7 +65,7 @@ function parseArgs(argv) {
       case '--swap': o.left = 'codex'; o.right = 'claude'; break;
       case '--code': o.code = true; break;
       case '-a': case '--auto': o.auto = true; break;
-      case '-t': case '--turns': o.turns = Math.max(1, parseInt(val(), 10) || 0); break;
+      case '-t': case '--turns': { const v = val(); o.turns = parseInt(v, 10); if (!(o.turns >= 1) || String(o.turns) !== v.trim()) throw new Error(`--turns needs a whole number of 1 or more, not "${v}"`); break; }
       case '--no-web': o.web = false; break;
       case '--web': o.web = true; o.webExplicit = true; break;
       case '--left-model': o.models.left = val(); break;
@@ -76,7 +76,7 @@ function parseArgs(argv) {
       case '--allow-dirty': o.allowDirty = true; break;
       case '--use-api-keys': o.keepKeys = true; break;
       default:
-        if (a.startsWith('-') && a.length > 1) throw new Error(`Unknown option ${a}. See spar --help`);
+        if (a.startsWith('-') && a.length > 1) throw new Error(`Unknown option ${a}. See ${SPAR} --help`);
         o.rest.push(a);
     }
   }
@@ -168,7 +168,7 @@ async function main() {
     user: 'the user', cwd: process.cwd(),
   };
   let res;
-  try { res = await play(opts); } catch (e) { ui.say(c.red(`  ${e.message}`)); return 1; }
+  try { res = await play(opts); } catch (e) { ui.say(c.red(`  ${e.message.split('\n').join('\n  ')}`)); return 1; }
   if (!res.turns) return 1;
 
   report(opts, res);
